@@ -657,3 +657,21 @@ body {
         font-size: 22px;
     }
 }
+
+/* Register link */
+.register-link {
+    text-align: center;
+    padding-top: 15px;
+}
+
+.register-link a {
+    color: #8b6914;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+    color: #c49a4a;
+}

@@ -15,7 +15,7 @@
                 <div class="card">
                     <h2>Вход в систему</h2>
                     <form id="loginForm">
-                        <div class="form-group"style="margin-bottom: 0.5rem;">
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
                             <label for="login">Логин:</label>
                             <input type="text" id="login" name="login" required>
                         </div>
@@ -24,6 +24,34 @@
                             <input type="password" id="password" name="password" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Войти</button>
+                    </form>
+                    <div class="register-link">
+                        <a href="#" onclick="app.showRegisterScreen()">Нет аккаунта? Зарегистрируйтесь</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="registerScreen" class="screen">
+            <div class="container">
+                <div class="card">
+                    <button class="btn-back" onclick="app.showLoginScreen()" style="margin-bottom: 20px;">← Назад ко входу</button>
+                    <h2>Регистрация нового пользователя</h2>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label>Логин:</label>
+                            <input type="text" id="regLogin" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль:</label>
+                            <input type="password" id="regPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Подтверждение пароля:</label>
+                            <input type="password" id="regConfirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
                     </form>
                 </div>
             </div>
@@ -49,6 +77,14 @@
                         <div class="menu-item" onclick="app.showCategoriesList()">
                             <div class="menu-icon">≡</div>
                             <div>Список категорий</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showUsersList()">
+                            <div class="menu-icon">👥</div>
+                            <div>Список пользователей</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showAddAdminModal()">
+                            <div class="menu-icon">👑</div>
+                            <div>Добавить администратора</div>
                         </div>
                         <div class="menu-item" onclick="app.showAddQuestionModal()">
                             <div class="menu-icon">?</div>
@@ -132,6 +168,40 @@
                     <h2>Список категорий</h2>
                 </div>
                 <div id="adminCategoriesList" class="categories-list"></div>
+            </div>
+        </div>
+
+        <!-- Users List Screen (Admin) -->
+        <div id="usersListScreen" class="screen">
+            <div class="container">
+                <div class="nav-header">
+                    <button class="btn-back" onclick="app.showAdminMenu()">← Назад</button>
+                    <h2>Список пользователей</h2>
+                </div>
+                <div id="usersList" class="categories-list"></div>
+            </div>
+        </div>
+
+        <!-- Add Admin Modal -->
+        <div id="addAdminModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('addAdminModal')">&times;</span>
+                <h3>Добавить администратора</h3>
+                <form id="addAdminForm">
+                    <div class="form-group">
+                        <label>Логин администратора:</label>
+                        <input type="text" id="adminLogin" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Пароль:</label>
+                        <input type="password" id="adminPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Подтверждение пароля:</label>
+                        <input type="password" id="adminConfirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </form>
             </div>
         </div>
 

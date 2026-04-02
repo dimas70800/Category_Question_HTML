@@ -29,6 +29,16 @@ class QuizApp {
             this.login();
         });
 
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.register();
+        });
+
+        document.getElementById('addAdminForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addAdmin();
+        });
+
         document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addCategory();
@@ -78,7 +88,7 @@ class QuizApp {
         const protectedModals = [
             'addCategoryModal', 'addQuestionModal', 'editQuestionModal', 
             'deleteQuestionModal', 'resetProgressModal', 'resetLocalStorageModal',
-            'saveCategoriesModal', 'deleteCategoryModal'
+            'saveCategoriesModal', 'deleteCategoryModal', 'addAdminModal'
         ];
         
         modals.forEach(modal => {
@@ -94,6 +104,155 @@ class QuizApp {
                 }
             });
         });
+    }
+
+    showRegisterScreen() {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById('registerScreen').classList.add('active');
+    }
+
+    showLoginScreen() {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById('loginScreen').classList.add('active');
+        document.getElementById('registerForm').reset();
+    }
+
+    register() {
+        const login = document.getElementById('regLogin').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+        if (!login || !password) {
+            this.showResult("Ошибка", "Заполните все поля!");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            this.showResult("Ошибка", "Пароли не совпадают!");
+            return;
+        }
+
+        if (this.users.find(u => u.Login === login)) {
+            this.showResult("Ошибка", "Пользователь с таким логином уже существует!");
+            return;
+        }
+
+        const newUser = new User(login, password, "Tested", 0);
+        this.users.push(newUser);
+        storage.saveAllUsers(this.users);
+
+        this.showResult("Успех", "Регистрация прошла успешно! Теперь вы можете войти.");
+        
+        setTimeout(() => {
+            this.showLoginScreen();
+        }, 2000);
+    }
+
+    showAddAdminModal() {
+        document.getElementById('addAdminModal').style.display = 'block';
+    }
+
+    addAdmin() {
+        const login = document.getElementById('adminLogin').value.trim();
+        const password = document.getElementById('adminPassword').value;
+        const confirmPassword = document.getElementById('adminConfirmPassword').value;
+
+        if (!login || !password) {
+            this.showResult("Ошибка", "Заполните все поля!");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            this.showResult("Ошибка", "Пароли не совпадают!");
+            return;
+        }
+
+        if (this.users.find(u => u.Login === login)) {
+            this.showResult("Ошибка", "Пользователь с таким логином уже существует!");
+            return;
+        }
+
+        const newAdmin = new User(login, password, "Admin", 0);
+        this.users.push(newAdmin);
+        storage.saveAllUsers(this.users);
+
+        this.closeModal('addAdminModal');
+        document.getElementById('addAdminForm').reset();
+        this.showResult("Успех", "Администратор добавлен!");
+        
+        storage.saveLog({
+            type: 'add_admin',
+            username: this.currentUser.Login,
+            newAdmin: login,
+            date: new Date().toISOString(),
+            message: `Добавлен новый администратор "${login}"`
+        });
+    }
+
+    showUsersList() {
+        const container = document.getElementById('usersList');
+        container.innerHTML = '';
+        
+        if (this.users.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет пользователей</div>';
+        } else {
+            this.users.forEach((user) => {
+                const userProgress = storage.loadUserProgress(user.Login);
+                let completedCategories = 0;
+                let totalCompleted = 0;
+                
+                for (const category of this.categories) {
+                    const resolvedCount = category.Questions.filter(q => userProgress.isQuestionResolved(category.Name, category.Questions.indexOf(q))).length;
+                    if (resolvedCount === category.Questions.length && category.Questions.length > 0) {
+                        completedCategories++;
+                    }
+                    totalCompleted += resolvedCount;
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.innerHTML = `
+                    <h3>${user.Login} ${user.Role === 'Admin' ? '👑' : '👤'}</h3>
+                    <p>Роль: ${user.Role === 'Admin' ? 'Администратор' : 'Пользователь'}</p>
+                    <p>Счет: ${userProgress.Score} баллов</p>
+                    <p>Пройдено вопросов: ${totalCompleted}/${this.categories.reduce((sum, cat) => sum + cat.Questions.length, 0)}</p>
+                    <p>Завершено категорий: ${completedCategories}/${this.categories.length}</p>
+                    ${user.Login !== this.currentUser.Login ? `<button class="delete-category" onclick="app.deleteUser('${user.Login}')">Удалить пользователя</button>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById('usersListScreen').classList.add('active');
+    }
+
+    deleteUser(login) {
+        if (confirm(`Вы уверены, что хотите удалить пользователя "${login}"?`)) {
+            const index = this.users.findIndex(u => u.Login === login);
+            if (index !== -1) {
+                this.users.splice(index, 1);
+                storage.saveAllUsers(this.users);
+                localStorage.removeItem(`quiz_progress_${login}`);
+                
+                storage.saveLog({
+                    type: 'delete_user',
+                    username: this.currentUser.Login,
+                    deletedUser: login,
+                    date: new Date().toISOString(),
+                    message: `Удален пользователь "${login}"`
+                });
+                
+                this.showResult("Успех", `Пользователь "${login}" удален`);
+                this.showUsersList();
+            }
+        }
     }
 
     login() {
@@ -344,17 +503,24 @@ class QuizApp {
             container.innerHTML = '<div class="empty-state">Нет доступных категорий</div>';
         } else {
             this.categories.forEach((category) => {
-                const resolvedCount = category.Questions.filter(q => q.IsResolved).length;
-                const isCompleted = resolvedCount === category.Questions.length && category.Questions.length > 0;
+                let usersCompleted = 0;
+                for (const user of this.users) {
+                    if (user.Role !== 'Admin') {
+                        const userProgress = storage.loadUserProgress(user.Login);
+                        const allResolved = category.Questions.every((q, idx) => userProgress.isQuestionResolved(category.Name, idx));
+                        if (allResolved && category.Questions.length > 0) {
+                            usersCompleted++;
+                        }
+                    }
+                }
                 
                 const card = document.createElement('div');
                 card.className = 'category-card';
                 card.innerHTML = `
-                    <h3>${category.Name} ${isCompleted ? '✓' : ''}</h3>
+                    <h3>${category.Name}</h3>
                     <p>Вопросов: ${category.Questions.length}</p>
-                    <p>Решено: ${resolvedCount}</p>
-                    <div class="category-stats">${Math.round(resolvedCount/category.Questions.length*100)}% выполнено</div>
-                    <button class="delete-category" onclick="app.confirmDeleteCategory('${category.Name}')">Удалить</button>
+                    <p>Пользователей прошло: ${usersCompleted}</p>
+                    <button class="delete-category" onclick="app.confirmDeleteCategory('${category.Name}')">Удалить категорию</button>
                 `;
                 container.appendChild(card);
             });
@@ -530,12 +696,9 @@ class QuizApp {
             
             this.showResult("Правильно!", `+${this.currentQuestion.Points} баллов!\n\nВаш счет: ${this.userProgress.Score}`);
             
-            // Моментально закрываем окно вопроса и обновляем список
             this.closeModal('questionModal');
             this.selectedOption = null;
             this.updateScoreDisplay();
-            
-            // Моментально обновляем список вопросов (без задержки)
             this.showQuestions(this.selectedCategory.Name);
             
         } else {
@@ -556,8 +719,6 @@ class QuizApp {
             this.closeModal('questionModal');
             this.selectedOption = null;
             this.updateScoreDisplay();
-            
-            // Моментально обновляем список вопросов
             this.showQuestions(this.selectedCategory.Name);
         }
     }
@@ -613,6 +774,10 @@ class QuizApp {
                 } else if (log.type === 'reset') {
                     statusHtml = `<div class="log-detail">Действие: ${log.message}</div>`;
                 } else if (log.type === 'delete_category') {
+                    statusHtml = `<div class="log-detail">Действие: ${log.message}</div>`;
+                } else if (log.type === 'delete_user') {
+                    statusHtml = `<div class="log-detail">Действие: ${log.message}</div>`;
+                } else if (log.type === 'add_admin') {
                     statusHtml = `<div class="log-detail">Действие: ${log.message}</div>`;
                 } else if (log.type === 'login') {
                     statusHtml = `<div class="log-detail">Действие: ${log.message}</div>`;
@@ -801,11 +966,9 @@ class QuizApp {
         document.getElementById('firstOptionsContainer').innerHTML = '';
         this.showResult("Успех", "Категория с первым вопросом добавлена!");
         
-        // Сброс выбора категории (обновляем селекты)
         this.resetCategorySelects();
     }
 
-    // Сброс всех селектов выбора категорий
     resetCategorySelects() {
         const selects = ['questionCategory', 'editCategory', 'deleteCategory', 'resetCategoryName'];
         selects.forEach(selectId => {
@@ -902,7 +1065,6 @@ class QuizApp {
         document.getElementById('optionsContainer').innerHTML = '';
         this.showResult("Успех", "Вопрос добавлен!");
         
-        // Сбрасываем выбор категории в селекте
         const select = document.getElementById('questionCategory');
         if (select) select.selectedIndex = 0;
     }
@@ -1038,7 +1200,6 @@ class QuizApp {
         this.editingQuestion = null;
         this.editingCategory = null;
         
-        // Сбрасываем выбор категории
         const select = document.getElementById('editCategory');
         if (select) select.selectedIndex = 0;
         const questionSelect = document.getElementById('editQuestion');
@@ -1109,7 +1270,6 @@ class QuizApp {
         this.closeModal('deleteQuestionModal');
         this.showResult("Успех", "Вопрос удален!");
         
-        // Сбрасываем выбор категории
         const select = document.getElementById('deleteCategory');
         if (select) select.selectedIndex = 0;
         const questionSelect = document.getElementById('deleteQuestion');
