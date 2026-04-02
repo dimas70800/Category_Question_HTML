@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category & Questions</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="container">
+                <h1 style="text-align: center;">Category & Questions</h1>
+                <div class="card">
+                    <h2>Вход в систему</h2>
+                    <form id="loginForm">
+                        <div class="form-group"style="margin-bottom: 0.5rem;">
+                            <label for="login">Логин:</label>
+                            <input type="text" id="login" name="login" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 4rem;">
+                            <label for="password">Пароль:</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Menu Screen -->
+        <div id="adminScreen" class="screen">
+            <div class="container">
+                <div class="header">
+                    <div class="user-info">
+                        <span id="adminUsername"></span>
+                        <span>Счет: <span id="adminScore">0</span></span>
+                    </div>
+                    <button class="btn btn-logout" onclick="app.logout()">Выйти</button>
+                </div>
+                <div class="menu-container">
+                    <h2>Панель администратора</h2>
+                    <div class="menu-grid">
+                        <div class="menu-item" onclick="app.showAddCategoryModal()">
+                            <div class="menu-icon">+</div>
+                            <div>Добавить категорию</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showCategoriesList()">
+                            <div class="menu-icon">≡</div>
+                            <div>Список категорий</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showAddQuestionModal()">
+                            <div class="menu-icon">?</div>
+                            <div>Добавить вопрос</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showEditQuestionModal()">
+                            <div class="menu-icon">✎</div>
+                            <div>Редактировать вопрос</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showDeleteQuestionModal()">
+                            <div class="menu-icon">×</div>
+                            <div>Удалить вопрос</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showLogs()">
+                            <div class="menu-icon">📋</div>
+                            <div>Просмотр логов</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showResetUserProgress()">
+                            <div class="menu-icon">↺</div>
+                            <div>Сброс прогресса</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showResetLocalStorage()">
+                            <div class="menu-icon">⚠</div>
+                            <div>Сброс localStorage</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showSaveCategoriesModal()">
+                            <div class="menu-icon">💾</div>
+                            <div>Сохранить категории</div>
+                        </div>
+                        <div class="menu-item" onclick="app.loadCategoriesFromFile()">
+                            <div class="menu-icon">📂</div>
+                            <div>Загрузить категории</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Menu Screen -->
+        <div id="userScreen" class="screen">
+            <div class="container">
+                <div class="header">
+                    <div class="user-info">
+                        <span id="userUsername"></span>
+                        <span>Счет: <span id="userScore">0</span></span>
+                    </div>
+                    <button class="btn btn-logout" onclick="app.logout()">Выйти</button>
+                </div>
+                <div class="menu-container">
+                    <h2>Меню пользователя</h2>
+                    <div class="menu-grid">
+                        <div class="menu-item" onclick="app.showCategories()">
+                            <div class="menu-icon">▶</div>
+                            <div>Выбрать категорию</div>
+                        </div>
+                        <div class="menu-item" onclick="app.showMyResult()">
+                            <div class="menu-icon">ℹ</div>
+                            <div>Мой результат</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Selection Screen (User) -->
+        <div id="categoriesScreen" class="screen">
+            <div class="container">
+                <div class="nav-header">
+                    <button class="btn-back" onclick="app.showUserMenu()">← Назад</button>
+                    <h2>Выберите категорию</h2>
+                </div>
+                <div id="categoriesList" class="categories-list"></div>
+            </div>
+        </div>
+
+        <!-- Categories List Screen (Admin) -->
+        <div id="adminCategoriesScreen" class="screen">
+            <div class="container">
+                <div class="nav-header">
+                    <button class="btn-back" onclick="app.showAdminMenu()">← Назад</button>
+                    <h2>Список категорий</h2>
+                </div>
+                <div id="adminCategoriesList" class="categories-list"></div>
+            </div>
+        </div>
+
+        <!-- Questions Screen -->
+        <div id="questionsScreen" class="screen">
+            <div class="container">
+                <div class="nav-header">
+                    <button class="btn-back" onclick="app.showCategories()">← Назад</button>
+                    <h2 id="categoryTitle"></h2>
+                </div>
+                <div id="questionsList" class="questions-list"></div>
+            </div>
+        </div>
+
+        <!-- Logs Screen -->
+        <div id="logsScreen" class="screen">
+            <div class="container">
+                <div class="nav-header">
+                    <button class="btn-back" onclick="app.showAdminMenu()">← Назад</button>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <h2>Детальные логи системы</h2>
+                        <button class="btn btn-danger" onclick="app.clearLogs()">Очистить логи</button>
+                    </div>
+                </div>
+                <div class="logs-container">
+                    <div id="logsList" class="logs-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Local Storage Modal -->
+        <div id="resetLocalStorageModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('resetLocalStorageModal')">&times;</span>
+                <h3>Сброс localStorage</h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">Вы уверены, что хотите полностью сбросить все данные?</p>
+                <p style="margin-bottom: 20px; color: #c95a4a; font-size: 14px;">⚠ ВНИМАНИЕ: Это действие удалит все категории, вопросы, пользователей и логи! Восстановление будет невозможно.</p>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-danger" id="confirmResetLocalStorageBtn">Сбросить все</button>
+                    <button class="btn btn-secondary" onclick="app.closeModal('resetLocalStorageModal')">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Categories Modal -->
+        <div id="saveCategoriesModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('saveCategoriesModal')">&times;</span>
+                <h3>Сохранить категории</h3>
+                <div class="form-group">
+                    <label>Выберите действие:</label>
+                    <select id="saveAction" style="margin-bottom: 15px;">
+                        <option value="all">Сохранить все категории</option>
+                        <option value="multiple">Сохранить несколько категорий</option>
+                        <option value="single">Сохранить одну категорию</option>
+                    </select>
+                </div>
+                <div id="saveCategoriesSelect" style="display: none;">
+                    <div class="form-group">
+                        <label>Выберите категории (для нескольких):</label>
+                        <div id="saveCategoriesCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid #e8d5b7; border-radius: 8px; padding: 10px;"></div>
+                    </div>
+                </div>
+                <div id="saveSingleSelect" style="display: none;">
+                    <div class="form-group">
+                        <label>Выберите категорию:</label>
+                        <select id="saveSingleCategory"></select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" id="confirmSaveBtn">Сохранить</button>
+                    <button class="btn btn-secondary" onclick="app.closeModal('saveCategoriesModal')">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset User Progress Modal -->
+        <div id="resetProgressModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('resetProgressModal')">&times;</span>
+                <h3>Сброс прогресса пользователя</h3>
+                <div class="form-group">
+                    <label>Выберите пользователя:</label>
+                    <select id="resetUserSelect" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Действие:</label>
+                    <select id="resetAction">
+                        <option value="all">Сбросить весь прогресс</option>
+                        <option value="category">Сбросить прогресс по категории</option>
+                    </select>
+                </div>
+                <div id="resetCategorySelect" style="display:none;">
+                    <div class="form-group">
+                        <label>Выберите категорию:</label>
+                        <select id="resetCategoryName"></select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-danger" id="confirmResetBtn">Сбросить прогресс</button>
+                    <button class="btn btn-secondary" onclick="app.closeModal('resetProgressModal')">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Modal -->
+        <div id="questionModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('questionModal')">&times;</span>
+                <h3 id="modalQuestionText"></h3>
+                <div id="modalOptions" class="options-list"></div>
+                <button class="btn btn-primary" onclick="app.submitAnswer()">Ответить</button>
+            </div>
+        </div>
+
+        <!-- Add Category Modal -->
+        <div id="addCategoryModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('addCategoryModal')">&times;</span>
+                <h3>Добавить категорию</h3>
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label>Название категории:</label>
+                        <input type="text" id="categoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Первый вопрос (текст):</label>
+                        <textarea id="firstQuestionText" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Количество вариантов:</label>
+                        <input type="number" id="firstOptionsCount" min="2" max="6" value="4">
+                        <button type="button" class="btn-secondary" onclick="app.generateFirstOptionFields()">Сгенерировать поля</button>
+                    </div>
+                    <div id="firstOptionsContainer"></div>
+                    <div class="form-group">
+                        <label>Стоимость вопроса (баллы):</label>
+                        <input type="number" id="firstQuestionPoints" value="10" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Создать категорию</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Question Modal -->
+        <div id="addQuestionModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('addQuestionModal')">&times;</span>
+                <h3>Добавить вопрос</h3>
+                <form id="addQuestionForm">
+                    <div class="form-group">
+                        <label>Выберите категорию:</label>
+                        <select id="questionCategory" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Текст вопроса:</label>
+                        <textarea id="questionText" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Количество вариантов:</label>
+                        <input type="number" id="optionsCount" min="2" max="6" value="4">
+                        <button type="button" class="btn-secondary" onclick="app.generateOptionFields()">Сгенерировать поля</button>
+                    </div>
+                    <div id="optionsContainer"></div>
+                    <div class="form-group">
+                        <label>Стоимость вопроса (баллы):</label>
+                        <input type="number" id="questionPoints" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Question Modal -->
+        <div id="editQuestionModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('editQuestionModal')">&times;</span>
+                <h3>Редактировать вопрос</h3>
+                <form id="editQuestionForm">
+                    <div class="form-group">
+                        <label>Выберите категорию:</label>
+                        <select id="editCategory" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Выберите вопрос:</label>
+                        <select id="editQuestion" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Текст вопроса:</label>
+                        <textarea id="editText" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Стоимость:</label>
+                        <input type="number" id="editPoints">
+                    </div>
+                    <div class="form-group">
+                        <label>Редактировать варианты ответов:</label>
+                        <button type="button" class="btn-secondary" onclick="app.showEditOptions()">Редактировать варианты</button>
+                    </div>
+                    <div id="editOptionsContainer"></div>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Category Confirm Modal -->
+        <div id="deleteCategoryModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('deleteCategoryModal')">&times;</span>
+                <h3>Удалить категорию</h3>
+                <p id="deleteCategoryMessage"></p>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+                    <button class="btn btn-secondary" onclick="app.closeModal('deleteCategoryModal')">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Question Modal -->
+        <div id="deleteQuestionModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('deleteQuestionModal')">&times;</span>
+                <h3>Удалить вопрос</h3>
+                <form id="deleteQuestionForm">
+                    <div class="form-group">
+                        <label>Выберите категорию:</label>
+                        <select id="deleteCategory" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Выберите вопрос:</label>
+                        <select id="deleteQuestion" required></select>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result Modal -->
+        <div id="resultModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="app.closeModal('resultModal')">&times;</span>
+                <h3 id="resultTitle"></h3>
+                <p id="resultMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/models.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
