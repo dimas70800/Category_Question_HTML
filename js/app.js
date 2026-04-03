@@ -218,9 +218,9 @@ class QuizApp {
                 card.innerHTML = `
                     <h3>${user.Login} ${user.Role === 'Admin' ? '👑' : '👤'}</h3>
                     <p>Роль: ${user.Role === 'Admin' ? 'Администратор' : 'Пользователь'}</p>
-                    <p>Счет: ${userProgress.Score} баллов</p>
-                    <p>Пройдено вопросов: ${totalCompleted}/${this.categories.reduce((sum, cat) => sum + cat.Questions.length, 0)}</p>
-                    <p>Завершено категорий: ${completedCategories}/${this.categories.length}</p>
+                    ${user.Role !== 'Admin'?`<p>Счет: ${userProgress.Score} баллов</p>`:''}
+                    ${user.Role !== 'Admin'?`<p>Пройдено вопросов: ${totalCompleted}/${this.categories.reduce((sum, cat) => sum + cat.Questions.length, 0)}</p>`:''}
+                    ${user.Role !== 'Admin'?`<p>Завершено категорий: ${completedCategories}/${this.categories.length}</p>`:''}
                     ${user.Login !== this.currentUser.Login ? `<button class="delete-category" onclick="app.deleteUser('${user.Login}')">Удалить пользователя</button>` : ''}
                 `;
                 container.appendChild(card);
@@ -302,7 +302,6 @@ class QuizApp {
         if (this.currentUser.Role === 'Admin') {
             document.getElementById('adminScreen').classList.add('active');
             document.getElementById('adminUsername').textContent = this.currentUser.Login;
-            document.getElementById('adminScore').textContent = this.userProgress.Score;
         } else {
             document.getElementById('userScreen').classList.add('active');
             document.getElementById('userUsername').textContent = this.currentUser.Login;
@@ -724,11 +723,7 @@ class QuizApp {
     }
 
     updateScoreDisplay() {
-        if (this.currentUser.Role === 'Admin') {
-            document.getElementById('adminScore').textContent = this.userProgress.Score;
-        } else {
-            document.getElementById('userScore').textContent = this.userProgress.Score;
-        }
+        document.getElementById('userScore').textContent = this.userProgress.Score;
     }
 
     showMyResult() {
