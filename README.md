@@ -1,5 +1,3 @@
-# Для запуска программы перейдите по ссылке:
-##  https://dimas70800.github.io/Category_Question_HTML/
 # **Как установить локально:**
 ### 1. Скачать из Releases файл Category_Question_HTML.zip
 ### 2. Расспаковать его в любое место
